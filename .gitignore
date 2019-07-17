@@ -1,0 +1,6 @@
+conf/*
+!conf/.keep
+opensim/*
+!opensim/.keep
+run/*
+!run/.keep

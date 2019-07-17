@@ -1,0 +1,150 @@
+#!/bin/bash
+
+export ROOTDIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+cd $ROOTDIR
+source lib/osgum.sh
+
+sim_exists () {
+    (ps -ef | grep "$MONO OpenSim.exe" | grep -qv grep) && test -f "$SIMRUN/OpenSim.exe.pid"
+}
+
+do_start () {
+    local cmd logconfig
+    local elapsed=0
+
+    if sim_exists; then
+        error "$MSGSIM is already running. Use `basename $0` '$SIMNAME' console to view it"
+    fi
+
+    # allow user overriding logging options
+    logconfig="$ROOTDIR/lib/conf/OpenSim.exe.config"
+    [[ -f $SIMCONF/OpenSim.exe.config ]] && logconfig="$SIMCONF/OpenSim.exe.config"
+
+    cmd="env LANG=C $MONO OpenSim.exe -inifile=\"$ROOTDIR/lib/conf/OpenSim.ini\" -inidirectory=\"$SIMCONF\" -logconfig=\"$logconfig\""
+
+    echo -n "$MSGSIM starting "
+    if [[ $1 = 'direct' ]]; then
+        cd "$ROOTDIR/opensim/$OSIM_INSTALL/bin"
+        exec $cmd
+    else
+        tmux_new "OS-$SIMNAME" "$PWD" "$0" $SIMNAME direct
+        # wait until OpenSim pid file is created
+        while :
+        do
+            sleep 1
+            elapsed=$((elapsed + 1))
+            echo -n '.'
+            if sim_exists; then
+                echo ' running'
+                return 0
+            elif [[ $elapsed -ge 10 ]]; then
+                echo -e "\n"
+                error "$MSGSIM failed to start within 10 seconds"
+            fi
+        done
+    fi
+}
+
+do_stop () {
+    local elapsed=0
+
+    sim_exists || error "$MSGSIM is not started"
+    if tmux_exists "OS-$SIMNAME"; then
+        echo -n "$MSGSIM stopping "
+        tmux_send "OS-$SIMNAME" quit
+        while :
+        do
+            sleep 2
+            elapsed=$((elapsed + 2))
+            echo -n '.'
+            if ! sim_exists; then
+                echo ' stopped'
+                return 0
+            elif [[ $elapsed -ge 120 ]]; then
+                echo ' too long... killing!'
+                do_kill
+                return 1
+            fi
+        done
+    else
+        erro "$MSGSIM started manually, stop it from the console"
+    fi
+}
+
+do_kill () {
+    local pid="$SIMRUN/OpenSim.exe.pid"
+    if [[ -f $pid ]]; then
+        kill -9 $(cat "$pid")
+        rm "$pid"
+        echo "$MSGSIM killed"
+
+    fi
+}
+
+do_help () {
+    cat << EOT
+$(basename $0) {simname} {command} - Controls a simulator instance
+Where {simname} is the name of the config directory for that instance
+and {command} is one of:
+    enable  Enable auto start of the simulator when running the grid
+    disable Disable auto start of the simulator when running the grid
+    direct  Start the simulator without putting it in the tmux session
+    start   Start the simulator
+    stop    Stop the simulator
+    restart stop, then start
+    kill    Force stopping the simulator when it does not respond
+    status  Get running status
+    console Enter the OpenSim console of this instance inth the tmux session
+EOT
+    exit 1
+}
+
+# ensure a simulator instance name as been provided
+export SIMNAME="$1"
+if [[ -z $SIMNAME ]] || [[ $# -lt 2 ]]; then do_help; fi
+shift
+
+export SIMCONF="$CONFDIR/available/$SIMNAME"
+export SIMRUN="$RUNDIR/$SIMNAME"
+mkdir -p "$SIMRUN/log"
+MSGSIM="[$SIMNAME]"
+
+source "$SIMCONF/instance.conf" || error "Missing file '$SIMCONF/instance.conf'"
+[[ -n $HTTPPORT ]] || error "Missing variable HTTPPORT in '$SIMCONF/instance.conf'"
+export HTTPPORT
+
+
+case "$1" in
+enable)
+    ;;
+disable)
+    ;;
+direct)
+    do_start direct
+    ;;
+start)
+    do_start
+    ;;
+stop)
+    do_stop
+    ;;
+restart)
+    do_stop && do_start
+    ;;
+kill)
+    do_kill
+    ;;
+status)
+    if sim_exists; then
+        echo "$MSGSIM running"
+    else
+        echo "$MSGSIM offline"
+    fi
+    ;;
+console)
+    tmux_show "OS-$SIMNAME"
+    ;;
+*)
+    do_help
+    ;;
+esac
