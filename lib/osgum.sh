@@ -1,33 +1,4 @@
 
-# # tmux_new <name> <startdir> <cmd> {<cmdarg> <cmdarg> ...}
-# tmux_new () {
-#     local name="$1"
-#     local dir="$2"
-#     shift 2
-
-#     if ! tmux -L "$OSUGM_NAME" list-sessions &>/dev/null; then
-#         tmux -L "$OSUGM_NAME" start-server
-#     fi
-#     tmux -L "$OSUGM_NAME" new-session -d -c "$dir" -s "$name" "$@"
-# }
-
-# # tmux_exists <name>
-# tmux_exists () {
-#     tmux -L "$OSUGM_NAME" list-sessions | grep -q "^$1:"
-# }
-
-# # tmux_show <name>
-# tmux_show () {
-#     tmux -L "$OSUGM_NAME" attach -t "$1"
-# }
-
-# # tmux_send <name> <input>
-# tmux_send () {
-#     local name="$1"
-#     shift
-#     tmux -L "$OSUGM_NAME" send-keys -t "=$name:0" "$@" "c-m"
-# }
-
 # load config
 mainconf="$OSUGM_CONF/osgum.conf"
 source "$mainconf" || error "Missing main configuration file '$mainconf'"

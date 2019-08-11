@@ -47,7 +47,7 @@ log () {
     }
     msg=$@
     istrue $OSUGM_LOGGING && echo "$(date +"%Y-%m-%d %H:%M:%S") $typ$err $msg" >> "$OSUGM_LOG"
-    echo $noret "${col}$typ${COLORS['normal']}" >&2
+    echo -e $noret "${col}$typ${COLORS['normal']}" >&2
 }
 
 error () {
