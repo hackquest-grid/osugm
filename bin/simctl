@@ -5,6 +5,16 @@ cd $OSUGM_ROOT
 source lib/helpers.sh
 source lib/osgum.sh
 
+check_test () {
+    test "$@" &> /dev/null
+    echo "$@ = $?"
+}
+
+if [[ $1 == list ]]; then
+    ls "$OSUGM_CONF/available"
+    exit 0
+fi
+
 # ensure a simulator instance name as been provided
 export OSUGM_SIMNAME="$1"
 if [[ -z $OSUGM_SIMNAME ]] || [[ $# -lt 2 ]]; then
@@ -14,6 +24,7 @@ Where {simname} is the name of the config directory for that instance
 and {command} is one of:
     enable  Enable auto start of the simulator when running the grid
     disable Disable auto start of the simulator when running the grid
+    list    List available simulators
     direct  Start the simulator without putting it in the tmux session
     start   Start the simulator
     stop    Stop the simulator
