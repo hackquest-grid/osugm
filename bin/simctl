@@ -8,7 +8,21 @@ source lib/osgum.sh
 # ensure a simulator instance name as been provided
 export OSUGM_SIMNAME="$1"
 if [[ -z $OSUGM_SIMNAME ]] || [[ $# -lt 2 ]]; then
-    $0 help
+    cat << EOT
+$OSUGM {simname} {command} - Controls a simulator instance
+Where {simname} is the name of the config directory for that instance
+and {command} is one of:
+    enable  Enable auto start of the simulator when running the grid
+    disable Disable auto start of the simulator when running the grid
+    direct  Start the simulator without putting it in the tmux session
+    start   Start the simulator
+    stop    Stop the simulator
+    restart stop, then start
+    kill    Force stopping the simulator when it does not respond
+    status  Get running status
+    console Enter the OpenSim console of this instance inth the tmux session
+EOT
+    exit 1
 fi
 shift
 
@@ -16,12 +30,13 @@ export OSUGM_SIMCONF="$OSUGM_CONF/available/$OSUGM_SIMNAME"
 export OSUGM_SIMRUN="$OSUGM_RUN/$OSUGM_SIMNAME"
 mkdir -p "$OSUGM_SIMRUN/log"
 msgsim="$OSUGM_SIMNAME"
+set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
 
 source "$OSUGM_SIMCONF/instance.conf" || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
 [[ -n $OSUGM_SIMPORT ]] || error "Missing variable OSUGM_SIMPORT in '$OSUGM_SIMCONF/instance.conf'"
 
 sim_exists () {
-    (ps -ef | grep "$OSUGM_MONO OpenSim.exe" | grep -qv grep) && test -f "$OSUGM_SIMRUN/OpenSim.exe.pid"
+    ps -ef | grep "$OSUGM_MONO OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep #&& test -f "$OSUGM_SIMRUN/OpenSim.exe.pid"
 }
 
 case "$1" in
@@ -46,7 +61,6 @@ direct|start)
         -inidirectory=\"$OSUGM_SIMCONF\" \
         -logconfig=\"$logconfig\""
 
-    echo -n "$MSGSIM starting "
     if [[ $1 = 'direct' ]]; then
         direct_start $msgsim "$OSUGM_EXEC/$OSUGM_OPENSIM/bin" $cmd
     else
@@ -54,12 +68,12 @@ direct|start)
     fi
     ;;
 stop)
-    if sim_exists; then
+    if ! sim_exists; then
         log warn "$msgsim is not started"
-        return 0
+        exit 0
     fi
-    if screen_exists "$OSUGM_SIMNAME"; then
-        screen_stop $msgsim sim_exists 120
+    if screen_exists "$msgsim"; then
+        screen_stop $msgsim sim_exists 60 "$OSUGM_SIMRUN/OpenSim.exe.pid"
     else
         log warn "$msgsim started manually, stop it from the console"
     fi
@@ -68,7 +82,7 @@ restart)
     $0 stop && $0 start
     ;;
 kill)
-    kill_pidfile "$OSUGM_SIMRUN/OpenSim.exe.pid"
+    kill_pidfile $msgsim "$OSUGM_SIMRUN/OpenSim.exe.pid"
     ;;
 status)
     if sim_exists; then
@@ -81,20 +95,7 @@ console)
     screen_attach "$OSUGM_SIMNAME"
     ;;
 *)
-    cat << EOT
-$OSUGM {simname} {command} - Controls a simulator instance
-Where {simname} is the name of the config directory for that instance
-and {command} is one of:
-    enable  Enable auto start of the simulator when running the grid
-    disable Disable auto start of the simulator when running the grid
-    direct  Start the simulator without putting it in the tmux session
-    start   Start the simulator
-    stop    Stop the simulator
-    restart stop, then start
-    kill    Force stopping the simulator when it does not respond
-    status  Get running status
-    console Enter the OpenSim console of this instance inth the tmux session
-EOT
-    exit 1
+    # without argument, shows help
+    $0
     ;;
 esac

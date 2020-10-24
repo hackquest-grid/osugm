@@ -38,7 +38,7 @@ You can finegrain alter settings with those in the `conf` directory:
 * `conf/Robust.exe.config` logging options
 * `conf/OpenSim.ini` your local simulator settings, shared for all instances
 * `conf/available/{inst}/instance.conf` local overrides from `conf/osgum.conf` (for example, to use a specific **OpenSim** version)
-* `conf/available/{inst}/Local.ini` your local simulator settings for a specific instance
+* `conf/available/{inst}/*.ini` your local simulator settings for a specific instance (all ini files in this directory are parsed)
 * `conf/available/{inst}/OpenSim.exe.config` logging options
 * `conf/available/{inst}/regions/*.ini` region initialization files
 

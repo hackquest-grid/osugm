@@ -11,7 +11,7 @@ mkdir -p "$OSUGM_GRIDRUN/log"
 msgrob='Robust'
 
 robust_exists () {
-    (ps -ef | grep "$OSUGM_MONO Robust.exe" | grep -qv grep) && test -f "$OSUGM_GRIDRUN/Robust.exe.pid"
+    ps -ef | grep "$OSUGM_MONO Robust.exe" | grep -qv grep #&& test -f "$OSUGM_GRIDRUN/Robust.exe.pid"
 }
 
 case "$1" in
@@ -42,12 +42,12 @@ direct|start)
     fi
     ;;
 stop)
-    if robust_exists; then
+    if ! robust_exists; then
         log warn "$msgrob is not started"
         exit 0
     fi
     if screen_exists $msgrob; then
-        screen_stop $msgrob robust_exists 120
+        screen_stop $msgrob robust_exists 120 "$OSUGM_GRIDRUN/Robust.exe.pid"
     else
         log warn "$msgrob started manually, stop it from the console"
     fi

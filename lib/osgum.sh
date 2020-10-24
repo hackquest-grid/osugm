@@ -20,7 +20,7 @@ direct_start () {
 
 # screen_exists {name}
 screen_exists () {
-    return 1
+    screen -list | grep "$OSUGM_NAME.$1" | grep -qv grep
 }
 
 # screen_start {name} {testfunc} {wait secs} {rundir} {cmd args...} 
@@ -33,7 +33,7 @@ screen_start () {
     shift 4
 
     log info -n "$name starting "
-    ( cd "$rundir" && screen -S "$OSUGM_NAME" -t "$name" $cmd )
+    ( cd "$rundir" && screen -d -m -S "$OSUGM_NAME.$name" $cmd )
     # wait until pid file is created
     while :
     do
@@ -50,13 +50,14 @@ screen_start () {
     done
 }
 
-# screen_stop {name} {testfunc} {wait secs}
+# screen_stop {name} {testfunc} {wait secs} {pidfile}
 screen_stop () {
     local name=$1
     local testfunc=$2
     local wait=$3
+    local pidfile="$4"
     local elapsed=0
-    shift 3
+    shift 4
 
     echo -n "$name stopping"
     screen_send $name quit
@@ -65,12 +66,12 @@ screen_stop () {
         sleep 2
         elapsed=$((elapsed + 2))
         echo -n '.'
-        if ! $testunc; then
+        if $testunc; then
             echo ' stopped'
             return 0
         elif [[ $elapsed -ge 120 ]]; then
             echo ' too long... killing!'
-            kill_pidfile $name "$OSUGM_GRIDRUN/Robust.exe.pid"
+            kill_pidfile $name "$pidfile"
             return 1
         fi
     done
@@ -78,12 +79,12 @@ screen_stop () {
 
 # screen_attach {name}
 screen_attach () {
-    screen -r -S "$OSUGM_NAME" -p "$1"
+    screen -r -S "$OSUGM_NAME.$1"
 }
 
 # screen_send {name} {command}
 screen_send () {
     local name="$1"
     shift
-    screen -r -S "$OSUGM_NAME" -p "$name" -X stuff "$@ $(printf '\r')"
+    screen -r -S "$OSUGM_NAME.$name" -X stuff "$@ $(printf '\r')"
 }
