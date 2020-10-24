@@ -35,11 +35,19 @@ log () {
 
     case $1 in
     [0-9][0-9]*)
-        typ='error'; col=$COLOR_ERROR; err="<$1>"; shift ;;
+        typ='error'
+        col=$COLOR_ERROR
+        err="<$1>"
+        shift
+        ;;
     error|warn|info|debug)
-        typ=$1; col=$COLORS[$1]; shift;;
+        typ=$1
+        col=$COLORS[$1]
+        shift
+        ;;
     *)
-        typ='info'; col=$COLORS['info']
+        typ='info'
+        col=$COLORS['info']
     esac
     [[ $1 = '-n' ]] && {
         noret=$1
@@ -47,7 +55,7 @@ log () {
     }
     msg=$@
     istrue $OSUGM_LOGGING && echo "$(date +"%Y-%m-%d %H:%M:%S") $typ$err $msg" >> "$OSUGM_LOG"
-    echo -e $noret "${col}$typ${COLORS['normal']}" >&2
+    echo -e $noret "${col}$typ${COLORS['normal']} $msg" >&2
 }
 
 error () {
