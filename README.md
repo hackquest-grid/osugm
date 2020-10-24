@@ -1,6 +1,6 @@
 # OpenSim Unix Grid Manager
 
-Set of scripts and configuration for **OpenSim** 0.9.x to manage **Robust** and all **OpenSim** instances in a centralized way. Using a unique entry point with **tmux** and factorized initialization files, it becomes easier to create and upgrate a grid, and manage running simulators.
+Set of scripts and configuration for **OpenSim** 0.9.x to manage **Robust** and all **OpenSim** instances in a centralized way. Using a unique entry point with **screen** and factorized initialization files, it becomes easier to create and upgrate a grid, and manage running simulators.
 
 ## Understanding directories
 
