@@ -22,6 +22,10 @@ COLORS['debug']='\e[1;35m'
 
 OSUGM_LOG="$OSUGM_RUN/$OSUGM.$OSUGM_PID.log"
 
+set_logfile () {
+    OSUGM_LOG="$OSUGM_RUN/$1"
+}
+
 istrue () {
     local val=$(echo $1 | tr '[:upper:]' '[:lower:]')
     case $val in

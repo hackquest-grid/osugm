@@ -4,6 +4,7 @@ export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
 source lib/helpers.sh
 source lib/osgum.sh
+set_logfile "$OSUGM.log"
 
 export OSUGM_GRIDRUN="$OSUGM_RUN/grid"
 mkdir -p "$OSUGM_GRIDRUN/log"
