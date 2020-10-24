@@ -33,7 +33,7 @@ screen_start () {
     shift 4
 
     log info -n "$name starting "
-    ( cd "$rundir" && screen -S "$name" $cmd )
+    ( cd "$rundir" && screen -S "$OSUGM_NAME" -t "$name" $cmd )
     # wait until pid file is created
     while :
     do
@@ -78,12 +78,12 @@ screen_stop () {
 
 # screen_attach {name}
 screen_attach () {
-    screen -r "$1"
+    screen -r -S "$OSUGM_NAME" -p "$1"
 }
 
 # screen_send {name} {command}
 screen_send () {
     local name="$1"
     shift
-    screen -r "$name" -X stuff "$@ $(printf '\r')"
+    screen -r -S "$OSUGM_NAME" -p "$name" -X stuff "$@ $(printf '\r')"
 }
