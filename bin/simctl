@@ -22,9 +22,10 @@ if [[ -z $OSUGM_SIMNAME ]] || [[ $# -lt 2 ]]; then
 $OSUGM {simname} {command} - Controls a simulator instance
 Where {simname} is the name of the config directory for that instance
 and {command} is one of:
+    list    List available simulators (list does not need an instance name)
+    init    Create a default configuration from template
     enable  Enable auto start of the simulator when running the grid
     disable Disable auto start of the simulator when running the grid
-    list    List available simulators
     direct  Start the simulator without putting it in the tmux session
     start   Start the simulator
     stop    Stop the simulator
@@ -38,10 +39,19 @@ fi
 shift
 
 export OSUGM_SIMCONF="$OSUGM_CONF/available/$OSUGM_SIMNAME"
-export OSUGM_SIMRUN="$OSUGM_RUN/$OSUGM_SIMNAME"
+export OSUGM_SIMRUN="$OSUGM_RUN/opensim.$OSUGM_SIMNAME"
 mkdir -p "$OSUGM_SIMRUN/log"
 msgsim="$OSUGM_SIMNAME"
 set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
+
+if [[ $1 = init ]]; then
+    mkdir -p "$OSUGM_SIMCONF/regions" || error "Error creating $OSUGM_SIMCONF/regions"
+    log info "Creating files for '$msgsim' instance..."
+    cp -v lib/templates/instance.conf "$OSUGM_SIMCONF" || exit 1
+    cp -v lib/templates/Local.ini "$OSUGM_SIMCONF" || exit 1
+    log info "Done. Don't forget to edit your new configuration in:\n\t$OSUGM_SIMCONF"
+    exit 0
+fi
 
 source "$OSUGM_SIMCONF/instance.conf" || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
 [[ -n $OSUGM_SIMPORT ]] || error "Missing variable OSUGM_SIMPORT in '$OSUGM_SIMCONF/instance.conf'"
