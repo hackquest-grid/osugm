@@ -2,91 +2,75 @@
 
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
+source lib/helpers.sh
 source lib/osgum.sh
+set_logfile "$OSUGM.log"
 
 export OSUGM_GRIDRUN="$OSUGM_RUN/grid"
 mkdir -p "$OSUGM_GRIDRUN/log"
-MSGROB='[Robust]'
+msgrob='Robust'
 
 robust_exists () {
-    (ps -ef | grep "$OSUGM_MONO Robust.exe" | grep -qv grep) && test -f "$OSUGM_GRIDRUN/Robust.exe.pid"
+    ps -ef | grep "$OSUGM_MONO Robust.exe" | grep -qv grep #&& test -f "$OSUGM_GRIDRUN/Robust.exe.pid"
 }
 
-do_start () {
-    local cmd logconfig
-    local elapsed=0
-
+case "$1" in
+direct|start)
     if robust_exists; then
-        error "$MSGROB is already running. Use `basename $0` console to view it"
+        log warn "$msgrob is already running. Use `basename $0` console to view it"
+        return 0
     fi
+
+    # check user config
+    [[ -f "$OSUGM_CONF/Robust.ini" ]] || error "Cannot find user config '$OSUGM_CONF/Robust.ini'"
+    [[ -f "$OSUGM_CONF/Database.ini" ]] || error "Cannot find user config '$OSUGM_CONF/Database.ini'"
 
     # allow user overriding logging options
-    logconfig="$OSUGM_ROOT/lib/conf/Robust.exe.config"
-    [[ -f $OSUGM_CONF/Robust.exe.config ]] && logconfig="$OSUGM_CONF/Robust.exe.config"
+    logconfig="$OSUGM_LIB/conf/Robust.exe.config"
+    if [[ -f $OSUGM_CONF/Robust.exe.config ]]; then
+        logconfig="$OSUGM_CONF/Robust.exe.config"
+    fi
 
-    cmd="env LANG=C $OSUGM_MONO Robust.exe -inifile=\"$OSUGM_ROOT/lib/conf/Robust.ini\" -logconfig=\"$logconfig\""
+    cmd="env LANG=C $OSUGM_MONO Robust.exe \
+        -inifile=\"$OSUGM_LIB/conf/Robust.ini\" \
+        -logconfig=\"$logconfig\""
 
-    echo -n "$MSGROB starting "
     if [[ $1 = 'direct' ]]; then
-        cd "$OSUGM_ROOT/opensim/$OSUGM_OPENSIM/bin"
-        exec $cmd
+        direct_start $msgrob "$OSUGM_EXEC/$OSUGM_OPENSIM/bin" $cmd
     else
-        tmux_new Robust "$OSUGM_ROOT/opensim/$OSUGM_OPENSIM/bin" $cmd
-        # wait until Robust pid file is created
-        while :
-        do
-            sleep 1
-            elapsed=$((elapsed + 1))
-            echo -n '.'
-            if robust_exists; then
-                echo ' running'
-                return 0
-            elif [[ $elapsed -ge 10 ]]; then
-                echo -e '\n'
-                error "$MSGROB failed to start within 10 seconds"
-            fi
-        done
+        screen_start $msgrob robust_exists 10 "$OSUGM_EXEC/$OSUGM_OPENSIM/bin" $cmd
     fi
-}
-
-do_stop () {
-    local elapsed=0
-
-    robust_exists || error "$MSGROB is not started"
-    if tmux_exists Robust; then
-        echo -n "$MSGROB stopping"
-        tmux_send Robust quit
-        while :
-        do
-            sleep 2
-            elapsed=$((elapsed + 2))
-            echo -n '.'
-            if ! robust_exists; then
-                echo ' stopped'
-                return 0
-            elif [[ $elapsed -ge 120 ]]; then
-                echo ' too long... killing!'
-                do_kill
-                return 1
-            fi
-        done
+    ;;
+stop)
+    if ! robust_exists; then
+        log warn "$msgrob is not started"
+        exit 0
+    fi
+    if screen_exists $msgrob; then
+        screen_stop $msgrob robust_exists 120 "$OSUGM_GRIDRUN/Robust.exe.pid"
     else
-        error "$MSGROB started manually, stop it from the console"
+        log warn "$msgrob started manually, stop it from the console"
     fi
-}
-
-do_kill () {
-    local pid="$OSUGM_GRIDRUN/Robust.exe.pid"
-    if [[ -f $pid ]]; then
-        kill -9 $(cat "$pid")
-        rm "$pid"
-        echo "$MSGROB killed"
+    ;;
+restart)
+    $OSUGM stop && $OSUGM start
+    ;;
+kill)
+    kill_pidfile $msgrob "$OSUGM_GRIDRUN/Robust.exe.pid"
+    ;;
+status)
+    if robust_exists; then
+        echo "$msgrob running"
+    else
+        echo "$msgrob offline"
     fi
-}
-
-do_help () {
+    ;;
+console)
+    screen_attach $msgrob
+    ;;
+*)
     cat <<EOT
-$(basename $0) {command} - Controls Robust grid manager
+$OSUGM {command} - Controls Robust grid manager
 Where {command} is one of:
     direct  Start Robust without putting it in the tmux session
     start   Start Robust
@@ -97,35 +81,4 @@ Where {command} is one of:
     console Enter the Robust console into the tmux session
 EOT
     exit 1
-}
-
-case "$1" in
-direct)
-    do_start direct
-    ;;
-start)
-    do_start
-    ;;
-stop)
-    do_stop
-    ;;
-restart)
-    do_stop && do_start
-    ;;
-kill)
-    do_kill
-    ;;
-status)
-    if robust_exists; then
-        echo "$MSGROB running"
-    else
-        echo "$MSGROB offline"
-    fi
-    ;;
-console)
-    tmux_show Robust
-    ;;
-*)
-    do_help
-    ;;
 esac

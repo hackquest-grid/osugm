@@ -1,5 +1,9 @@
-conf/*
+conf/*.*
 !conf/.keep
+conf/available/*
+!conf/available/.keep
+conf/enable/*
+!conf/enable/.keep
 opensim/*
 !opensim/.keep
 run/*

@@ -1,6 +1,6 @@
 # OpenSim Unix Grid Manager
 
-Set of scripts and configuration for **OpenSim** 0.9.x to manage **Robust** and all **OpenSim** instances in a centralized way. Using a unique entry point with **tmux** and factorized initialization files, it becomes easier to create and upgrate a grid, and manage running simulators.
+Set of scripts and configuration for **OpenSim** 0.9.x to manage **Robust** and all **OpenSim** instances in a centralized way. Using a unique entry point with **screen** and factorized initialization files, it becomes easier to create and upgrate a grid, and manage running simulators.
 
 ## Understanding directories
 
@@ -38,7 +38,7 @@ You can finegrain alter settings with those in the `conf` directory:
 * `conf/Robust.exe.config` logging options
 * `conf/OpenSim.ini` your local simulator settings, shared for all instances
 * `conf/available/{inst}/instance.conf` local overrides from `conf/osgum.conf` (for example, to use a specific **OpenSim** version)
-* `conf/available/{inst}/Local.ini` your local simulator settings for a specific instance
+* `conf/available/{inst}/*.ini` your local simulator settings for a specific instance (all ini files in this directory are parsed)
 * `conf/available/{inst}/OpenSim.exe.config` logging options
 * `conf/available/{inst}/regions/*.ini` region initialization files
 
