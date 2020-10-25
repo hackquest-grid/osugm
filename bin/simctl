@@ -10,16 +10,17 @@ check_test () {
     echo "$@ = $?"
 }
 
-if [[ $1 == list ]]; then
+cmd="$1"
+if [[ $cmd == list ]]; then
     ls "$OSUGM_CONF/available"
     exit 0
 fi
 
 # ensure a simulator instance name as been provided
-export OSUGM_SIMNAME="$1"
-if [[ -z $OSUGM_SIMNAME ]] || [[ $# -lt 2 ]]; then
+export OSUGM_SIMNAME="$2"
+if [[ -z $OSUGM_SIMNAME ]]; then
     cat << EOT
-$OSUGM {simname} {command} - Controls a simulator instance
+$OSUGM {command} {simname} - Controls a simulator instance
 Where {simname} is the name of the config directory for that instance
 and {command} is one of:
     list    List available simulators (list does not need an instance name)
@@ -36,7 +37,7 @@ and {command} is one of:
 EOT
     exit 1
 fi
-shift
+shift 2
 
 export OSUGM_SIMCONF="$OSUGM_CONF/available/$OSUGM_SIMNAME"
 export OSUGM_SIMRUN="$OSUGM_RUN/opensim.$OSUGM_SIMNAME"
@@ -44,7 +45,7 @@ mkdir -p "$OSUGM_SIMRUN/log"
 msgsim="$OSUGM_SIMNAME"
 set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
 
-if [[ $1 = init ]]; then
+if [[ $cmd = init ]]; then
     mkdir -p "$OSUGM_SIMCONF/regions" || error "Error creating $OSUGM_SIMCONF/regions"
     log info "Creating files for '$msgsim' instance..."
     cp -v lib/templates/instance.conf "$OSUGM_SIMCONF" || exit 1
@@ -53,14 +54,15 @@ if [[ $1 = init ]]; then
     exit 0
 fi
 
-source "$OSUGM_SIMCONF/instance.conf" || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
+[[ -r "$OSUGM_SIMCONF/instance.conf" ]] || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
+source "$OSUGM_SIMCONF/instance.conf" || error "Loading '$OSUGM_SIMCONF/instance.conf' failed"
 [[ -n $OSUGM_SIMPORT ]] || error "Missing variable OSUGM_SIMPORT in '$OSUGM_SIMCONF/instance.conf'"
 
 sim_exists () {
     ps -ef | grep "$OSUGM_MONO OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep #&& test -f "$OSUGM_SIMRUN/OpenSim.exe.pid"
 }
 
-case "$1" in
+case "$cmd" in
 enable)
     ;;
 disable)
