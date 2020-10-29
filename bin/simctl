@@ -3,7 +3,7 @@
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
 source lib/helpers.sh
-source lib/osgum.sh
+source lib/osugm.sh
 
 check_test () {
     test "$@" &> /dev/null
@@ -110,9 +110,10 @@ kill)
 status)
     if sim_exists; then
         echo "$msgsim running"
-    else
-        echo "$msgsim offline"
+        exit 0
     fi
+    echo "$msgsim offline"
+    exit 10
     ;;
 console)
     screen_attach "$OSUGM_SIMNAME"

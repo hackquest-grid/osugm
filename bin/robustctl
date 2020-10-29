@@ -3,7 +3,7 @@
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
 source lib/helpers.sh
-source lib/osgum.sh
+source lib/osugm.sh
 set_logfile "$OSUGM.log"
 
 export OSUGM_GRIDRUN="$OSUGM_RUN/grid"
@@ -61,9 +61,10 @@ kill)
 status)
     if robust_exists; then
         echo "$msgrob running"
-    else
-        echo "$msgrob offline"
+        exit 0
     fi
+    echo "$msgrob offline"
+    exit 10
     ;;
 console)
     screen_attach $msgrob
