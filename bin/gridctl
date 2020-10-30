@@ -2,7 +2,8 @@
 
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
-source lib/helpers.sh
+[ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
+source "$OSUGM_LIB/helpers.sh"
 set_logfile "$OSUGM.log"
 
 available () {
@@ -37,20 +38,28 @@ disabled)
   echo ${disabled[@]}
   ;;
 init)
-  # TODO
+  log info "Creating files..."
+  mkdir -p "$OSUGM_CONF/available" || exit 1
+  mkdir -p "$OSUGM_CONF/enable" || exit 1
+  mkdir -p "$OSUGM_EXEC" || exit 1
+  cp -v "$OSUGM_LIB/templates/osugm.conf" "$OSUGM_CONF" || exit 1
+  cp -v "$OSUGM_LIB/templates/Robust.ini" "$OSUGM_CONF" || exit 1
+  cp -v "$OSUGM_LIB/templates/Database.ini" "$OSUGM_CONF" || exit 1
+  log info "Done. Don't forget to edit your new configuration in:\n\t$OSUGM_CONF/osugm.conf\n\t$OSUGM_CONF/Database.ini\n\t$OSUGM_CONF/Robust.ini"
+  exit 0
   ;;
 enable)
   test "$2" || $0 help
   sim=$2
-  [[ -r conf/available/$sim ]] || error "'$sim' instance does not exist"
-  [[ -h conf/enable/$sim ]] && error "'$sim' is already enabled"
-  cd conf/enable && ln -s "$OSUGM_CONF/available/$sim" || exit $?
+  [[ -r $OSUGM_CONF/available/$sim ]] || error "'$sim' instance does not exist"
+  [[ -h $OSUGM_CONF/enable/$sim ]] && error "'$sim' is already enabled"
+  cd "$OSUGM_CONF/enable" && ln -s "$OSUGM_CONF/available/$sim" || exit $?
   log info "'$sim' instance enabled for running with grid"
   ;;
 disable)
   test "$2" || $0 help
-  [[ -h conf/enable/$2 ]] || error "'$2' is not an enabled instance"
-  rm -f conf/enable/$2 || exit $?
+  [[ -h $OSUGM_CONF/enable/$2 ]] || error "'$2' is not an enabled instance"
+  rm -f $OSUGM_CONF/enable/$2 || exit $?
   log info "'$2' instance disabled from running with grid"
   ;;
 start)

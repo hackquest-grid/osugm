@@ -2,8 +2,9 @@
 
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 cd $OSUGM_ROOT
-source lib/helpers.sh
-source lib/osugm.sh
+[ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
+source "$OSUGM_LIB/helpers.sh"
+source "$OSUGM_LIB/osugm.sh"
 
 check_test () {
     test "$@" &> /dev/null
@@ -48,13 +49,13 @@ set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
 if [[ $cmd = init ]]; then
     mkdir -p "$OSUGM_SIMCONF/regions" || error "Error creating $OSUGM_SIMCONF/regions"
     log info "Creating files for '$msgsim' instance..."
-    cp -v lib/templates/instance.conf "$OSUGM_SIMCONF" || exit 1
-    cp -v lib/templates/Local.ini "$OSUGM_SIMCONF" || exit 1
+    cp -v "$OSUGM_LIB/templates/instance.conf" "$OSUGM_SIMCONF" || exit 1
+    cp -v "$OSUGM_LIB/templates/Local.ini" "$OSUGM_SIMCONF" || exit 1
     log info "Done. Don't forget to edit your new configuration in:\n\t$OSUGM_SIMCONF"
     exit 0
 fi
 
-[[ -r "$OSUGM_SIMCONF/instance.conf" ]] || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
+[[ -r $OSUGM_SIMCONF/instance.conf ]] || error "Missing file '$OSUGM_SIMCONF/instance.conf'"
 source "$OSUGM_SIMCONF/instance.conf" || error "Loading '$OSUGM_SIMCONF/instance.conf' failed"
 [[ -n $OSUGM_SIMPORT ]] || error "Missing variable OSUGM_SIMPORT in '$OSUGM_SIMCONF/instance.conf'"
 

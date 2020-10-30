@@ -8,7 +8,7 @@ OSUGM_PID=$$
 [ "$OSUGM" ] || export OSUGM=$(basename $0)
 [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_ROOT/conf"
 [ "$OSUGM_BIN" ] || export OSUGM_BIN="$OSUGM_ROOT/bin"
-[ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
+#[ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
 [ "$OSUGM_RUN" ] || export OSUGM_RUN="$OSUGM_ROOT/run"
 [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_ROOT/opensim"
 
@@ -38,15 +38,15 @@ log () {
     local typ err msg line col noret
 
     case $1 in
-    [0-9][0-9]*)
-        typ='error'
-        col=$COLOR_ERROR
-        err="<$1>"
-        shift
-        ;;
+#    [0-9][0-9]*)
+#        typ='error'
+#        col=$COLOR_ERROR
+#        err="<$1>"
+#        shift
+#        ;;
     error|warn|info|debug)
         typ=$1
-        col=$COLORS[$1]
+        col=${COLORS[$1]}
         shift
         ;;
     *)
@@ -58,7 +58,10 @@ log () {
         shift
     }
     msg=$@
-    istrue $OSUGM_LOGGING && echo "$(date +"%Y-%m-%d %H:%M:%S") $typ$err $msg" >> "$OSUGM_LOG"
+    istrue $OSUGM_LOGGING && {
+        mkdir -p "$OSUGM_RUN" || exit 1
+        echo "$(date +"%Y-%m-%d %H:%M:%S") $typ$err $msg" >> "$OSUGM_LOG"
+    }
     echo -e $noret "${col}$typ${COLORS['normal']} $msg" >&2
 }
 

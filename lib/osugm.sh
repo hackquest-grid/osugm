@@ -10,6 +10,7 @@ direct_start () {
     local name="$1"
     local rundir="$2"
     shift 2
+    [[ -d $rundir ]] || error "'$rundir' does not exist"
     log info "starting $name"
     cd "$rundir"
     exec $@
@@ -32,6 +33,7 @@ screen_start () {
     local elapsed=0
     shift 4
 
+    [[ -d $rundir ]] || error "'$rundir' does not exist"
     log info -n "$name starting "
     ( cd "$rundir" && screen -d -m -S "$OSUGM_NAME.$name" $cmd )
     # wait until pid file is created
