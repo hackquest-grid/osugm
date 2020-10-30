@@ -1,0 +1,131 @@
+#!/bin/bash
+
+export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+cd $OSUGM_ROOT
+source lib/helpers.sh
+set_logfile "$OSUGM.log"
+
+available () {
+  ls "$OSUGM_CONF/available/"
+}
+
+enabled () {
+  ls "$OSUGM_CONF/enable/"
+}
+
+case "$1" in
+status)
+  bin/robustctl status
+  for sim in $(enabled); do
+    bin/simctl status $sim
+  done
+  ;;
+available)
+  available
+  ;;
+enabled)
+  enabled
+  ;;
+disabled)
+  all=$(available)
+  declare -a disabled
+  for sim in $all; do
+    if ! [ -h $OSUGM_CONF/enable/$sim ]; then
+      disabled[${#disabled[@]}]=$sim
+    fi
+  done
+  echo ${disabled[@]}
+  ;;
+init)
+  # TODO
+  ;;
+enable)
+  test "$2" || $0 help
+  sim=$2
+  [[ -r conf/available/$sim ]] || error "'$sim' instance does not exist"
+  [[ -h conf/enable/$sim ]] && error "'$sim' is already enabled"
+  cd conf/enable && ln -s "$OSUGM_CONF/available/$sim" || exit $?
+  log info "'$sim' instance enabled for running with grid"
+  ;;
+disable)
+  test "$2" || $0 help
+  [[ -h conf/enable/$2 ]] || error "'$2' is not an enabled instance"
+  rm -f conf/enable/$2 || exit $?
+  log info "'$2' instance disabled from running with grid"
+  ;;
+start)
+  # start robust if needed
+  bin/robustctl status &>/dev/null
+  grid_stopped=$?
+  if (($grid_stopped)); then
+    bin/robustctl start || exit $?
+  fi
+  # wait for robust to initialize
+  sleep 1
+
+  # start each enabled instance of Opensim
+  for sim in $(enabled); do
+    bin/simctl status $sim &>/dev/null
+    sim_stopped=$?
+    if (($sim_stopped)); then
+      bin/simctl start $sim || exit $?
+    fi
+  done
+  ;;
+stop)
+  # stop each enabled instance of Opensim
+  for sim in $(enabled); do
+    bin/simctl status $sim &>/dev/null
+    sim_stopped=$?
+    if ! (($sim_stopped)); then
+      bin/simctl stop $sim || exit $?
+    fi
+  done
+  # wait a bit so that robust has processed last requests
+  sleep 1
+
+  # stop robust if still running
+  bin/robustctl status &>/dev/null
+  grid_stopped=$?
+  if ! (($grid_stopped)); then
+    bin/robustctl stop || exit $?
+  fi
+  ;;
+restart)
+  $OSUGM stop && $OSUGM start
+  ;;
+kill)
+  # kill each enabled instance of Opensim
+  for sim in $(enabled); do
+    bin/simctl status $sim &>/dev/null
+    sim_stopped$?
+    if ! (($sim_stopped)); then
+      bin/simctl kill $sim || exit $?
+    fi
+  done
+
+  # kill robust if still running
+  bin/robustctl status &>/dev/null
+  grid_stopped=$?
+  if ! (($grid_stopped)); then
+    bin/robustctl kill || exit $?
+  fi
+  ;;
+*)
+  cat <<EOT
+$OSUGM {command} - Controls the whole grid
+Where {command} is one of:
+  status    Get grid running status
+  available List available simulators (and shows enabled)
+  enabled   List only enabled simulators
+  disabled  List only disabled simulators
+  init      Create a default configuration for the grid from template
+  enable {sim}   Add {sim} to grid enabled instances
+  disable {sim}  Remove {sim} from grid enabled instances
+  start     Start the grid, aka Robust and all enabled simulators
+  stop      Stop the grid, aka all enabled simulators and Robust
+  restart   Stop, then start
+  kill      Force stopping all enabled simulators and Robust
+EOT
+  exit 1
+esac
