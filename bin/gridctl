@@ -42,6 +42,7 @@ init)
   mkdir -p "$OSUGM_CONF/available" || exit 1
   mkdir -p "$OSUGM_CONF/enable" || exit 1
   mkdir -p "$OSUGM_EXEC" || exit 1
+  mkdir -p "$OSUGM_RUN" || exit 1
   cp -v "$OSUGM_LIB/templates/osugm.conf" "$OSUGM_CONF" || exit 1
   cp -v "$OSUGM_LIB/templates/Robust.ini" "$OSUGM_CONF" || exit 1
   cp -v "$OSUGM_LIB/templates/Database.ini" "$OSUGM_CONF" || exit 1

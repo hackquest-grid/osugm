@@ -49,8 +49,9 @@ set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
 if [[ $cmd = init ]]; then
     mkdir -p "$OSUGM_SIMCONF/regions" || error "Error creating $OSUGM_SIMCONF/regions"
     log info "Creating files for '$msgsim' instance..."
-    cp -v "$OSUGM_LIB/templates/instance.conf" "$OSUGM_SIMCONF" || exit 1
-    cp -v "$OSUGM_LIB/templates/Local.ini" "$OSUGM_SIMCONF" || exit 1
+    [[ -f $OSUGM_SIMCONF/instance.conf ]] || cp -v "$OSUGM_LIB/templates/instance.conf" "$OSUGM_SIMCONF" || exit 1
+    [[ -f $OSUGM_SIMCONF/Local.ini ]] || cp -v "$OSUGM_LIB/templates/Local.ini" "$OSUGM_SIMCONF" || exit 1
+    [[ -f $OSUGM_CONF/OpenSim.ini ]] || cp -v "$OSUGM_LIB/templates/OpenSim.ini" "$OSUGM_CONF" || exit 1
     log info "Done. Don't forget to edit your new configuration in:\n\t$OSUGM_SIMCONF"
     exit 0
 fi

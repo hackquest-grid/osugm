@@ -1,6 +1,6 @@
 
 # load config
-mainconf="$OSUGM_CONF/osgum.conf"
+mainconf="$OSUGM_CONF/osugm.conf"
 source "$mainconf" || error "Missing main configuration file '$mainconf'"
 [[ -n $OSUGM_NAME ]] || error "Missing OSUGM_NAME variable in '$mainconf'"
 unset mainconf
