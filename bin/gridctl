@@ -15,6 +15,9 @@ enabled () {
 }
 
 case "$1" in
+root)
+  echo "$OSUGM_ROOT"
+  ;;
 status)
   bin/robustctl status
   for sim in $(enabled); do
@@ -125,6 +128,7 @@ kill)
   cat <<EOT
 $OSUGM {command} - Controls the whole grid
 Where {command} is one of:
+  root      Give the root folder
   status    Get grid running status
   available List available simulators (and shows enabled)
   enabled   List only enabled simulators
