@@ -185,3 +185,66 @@ A last step: your grid needs a default region. So in `conf/Robust.ini` change th
 
     Region_Welcome = "DefaultRegion, FallbackRegion"
 ```
+
+To stop the simulator, simply do
+```sh
+$ bin/simctl stop instname
+instname stopping. stopped
+```
+
+### The grid as a whole
+
+Instead of starting and stopping Robust and all the simulator separately, you can use the `gridctl` script, which makes calls to `robustctl` and `simctl`.
+
+To make simulators known to the grid, you need to *enable* them. That way you have control on the automatically run instances.
+```sh
+$ bin/gridctl enable instname
+info 'instname' instance enabled for running with grid
+```
+
+Starting the grid (Robust and all enabled instances) is then as simple as
+```sh
+$ bin/gridctl start
+info Robust starting . running
+info instname starting . running
+```
+
+And stopping works the same way
+```sh
+$ bin/gridctl stop
+instname stopping. stopped
+Robust stopping. stopped
+```
+
+## Going further
+
+**OSUGM** is made of 3 commands:
+* **robustctl** controlling Robust
+* **simctl** controlling simulator instances
+* **gridctl** controlling both Robust through **robustctl** and all *enabled* simulators through **sinctl**
+
+You can can a quick help of available actions for each command invoking them without parameter.
+
+### Using the Unix directory layout
+
+Let's say you want to integrate **OSUGM** in your system, in `/usr/local`.
+
+```sh
+# mkdir -p /etc/osugm
+# mkdir -p /usr/local/share/osugm
+# mkdir -p /var/lib/osugm
+# cp bin/* /usr/local/bin
+# cp -r lib/* /usr/loca/share/osugm
+```
+
+Edit your global environment variables file (`/etc/environment` or `/etc/profile` or `/etc/profile.d/osugm.sh`):
+
+```sh
+export OSUGM_CONF="/etc/osugm"
+export OSUGM_BIN="/usr/local/bin"
+export OSUGM_LIB="/usr/local/share/osugm"
+export OSUGM_EXEC="/var/lib/osugm/opensim"
+export OSUGM_RUN="/var/lib/osugm/run"
+```
+
+The only exception to standard directory layout is for log files that cannot be put in `/var/log/` and must stay in the *run* directory for now.
