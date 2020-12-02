@@ -1,0 +1,164 @@
+#!/bin/bash
+
+export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+export OSUGM=$(basename $0)
+[ -f "$OSUGM_ROOT/etc/$OSUGM/.std" ] && export OSUGM_PREFIX="$OSUGM_ROOT"
+if [ "$OSUGM_PREFIX" ]; then
+  # use OSUGM_PREFIX to use a standard Unix scheme
+  export OSUGM_ROOT="$OSUGM_PREFIX"
+  [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_PREFIX/etc/$OSUGM"
+  [ "$OSUGM_BIN" ] || export OSUGM_BIN="$OSUGM_PREFIX/bin"
+  [ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_PREFIX/lib/$OSUGM"
+  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_PREFIX/var/lib/$OSUGM"
+  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$OSUGM_PREFIX/var/run/$OSUGM"
+  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$OSUGM_PREFIX/var/log/$OSUGM"
+else
+  # or keep project structure in one directory
+  [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_ROOT/conf"
+  [ "$OSUGM_BIN" ] || export OSUGM_BIN="$OSUGM_ROOT/bin"
+  [ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
+  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_ROOT/opensim"
+  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$OSUGM_ROOT/run"
+  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$OSUGM_RUN"
+fi
+export OSUGM_PID=$$
+
+# load things we need
+
+source "$OSUGM_LIB/helpers.sh" || {
+  echo "Could not load needed scripts. Check you OSUGM installation"
+  exit 1
+}
+set_logfile "$OSUGM.log"
+
+source_or_die \
+  "$OSUGM_LIB/grid.sh" \
+  "$OSUGM_LIB/robust.sh" \
+  "$OSUGM_LIB/sim.sh" \
+  "$OSUGM_LIB/templates/osugm.conf"
+
+case "$1" in
+""|root|init|install);;
+*)
+  # load configuration
+  mainconf="$OSUGM_CONF/osugm.conf"
+  source "$mainconf" || error "Missing main configuration file '$mainconf'"
+  [[ -n $OSUGM_NAME ]] || error "Missing OSUGM_NAME variable in '$mainconf'"
+  unset mainconf
+esac
+
+# handle arguments
+case "$1" in
+root)
+  echo "$OSUGM_ROOT"
+  ;;
+init)
+  log info "Creating files and directories..."
+  mkdir -p "$OSUGM_CONF/available" || exit 1
+  mkdir -p "$OSUGM_CONF/enable" || exit 1
+  mkdir -p "$OSUGM_EXEC" || exit 1
+  mkdir -p "$OSUGM_RUN" || exit 1
+  cp "$OSUGM_LIB/templates/osugm.conf" "$OSUGM_CONF" || exit 1
+  cp "$OSUGM_LIB/templates/Robust.ini" "$OSUGM_CONF" || exit 1
+  cp "$OSUGM_LIB/templates/Database.ini" "$OSUGM_CONF" || exit 1
+  log info "Done. Don't forget to edit your new configuration in:\n\t$(bold $OSUGM_CONF/osugm.conf)\n\t$(bold $OSUGM_CONF/Database.ini)\n\t$(bold $OSUGM_CON/Robust.ini)"
+  ;;
+install)
+  [ "$2" ] || error "Specify an install path"
+  # let's create an OSUGM installation with standard Unix scheme
+  log info "Installing in \"$2\""
+  install -d "$2/bin" || exit 1
+  INSTDIR=$(cd "$(readlink -f "$2")" && pwd)
+  if [ "$3" ]; then
+    BASENAME="osugm.$3"
+  else
+    BASENAME=osugm
+  fi
+  install -d "$INSTDIR/etc/$BASENAME/available" || exit 1
+  install -d "$INSTDIR/etc/$BASENAME/enable" || exit 1
+  install -d "$INSTDIR/lib/$BASENAME/templates" || exit 1
+  install -d "$INSTDIR/lib/$BASENAME/conf" || exit 1
+  install -d "$INSTDIR/var/run/$BASENAME" || exit 1
+  install -d "$INSTDIR/var/log/$BASENAME" || exit 1
+  install -m 755 "$OSUGM_BIN/$OSUGM" "$INSTDIR/bin/$BASENAME" || exit 1
+  install -m 644 "$OSUGM_LIB/"*.sh "$INSTDIR/lib/$BASENAME" || exit 1
+  install -m 644 "$OSUGM_LIB/conf/"* "$INSTDIR/lib/$BASENAME/conf" || exit 1
+  install -m 644 "$OSUGM_LIB/templates/"* "$INSTDIR/lib/$BASENAME/templates" || exit 1
+  touch "$INSTDIR/etc/$BASENAME/.std" || exit 1
+  log info "Done, do not forget to initialize your installation before executing\n\t$(bold $INSTDIR/bin/$OSUGM)"
+  ;;
+status)
+  robust_status
+  for sim in $(grid_enabled); do
+    sim_status $sim
+  done
+  ;;
+available)
+  grid_available
+  ;;
+enabled)
+  grid_enabled
+  ;;
+disabled)
+  all=$(grid_available)
+  declare -a disabled
+  for sim in $all; do
+    if ! [ -h "$OSUGM_CONF/enable/$sim" ]; then
+      disabled[${#disabled[@]}]=$sim
+    fi
+  done
+  echo ${disabled[@]}
+  ;;
+start)
+  ;;
+stop)
+  ;;
+restart)
+  ;;
+kill)
+  ;;
+robust)
+  shift
+  robust_cmd "$@"
+  ;;
+sim)
+  shift
+  sim_cmd "$@"
+  ;;
+*)
+  cat <<EOT
+$OSUGM {command} - Controls the OpenSim grid
+Where {command} is one of:
+  root
+  init
+  install {prefix} [{name}] Install under {prefix} with opt. {name}
+  status
+  available
+  enabled
+  disabled
+  start
+  stop
+  restart
+  kill
+Robust specific commands:
+  robust status     Get running status of Robust
+  robust direct     Start Robust without screen session
+  robust start      Start Robust
+  robust stop       Stop Robust
+  robust restart    Stop, then start
+  robust kill       Force stopping Robust when it does not respond
+  robust console    Enter the Robust console into the screen session
+Simulator specific commands:
+  sim init {sim}    Create a default configuration from template
+  sim enable {sim}  Enable auto start of the simulator with the grid
+  sim disable {sim} Disable auto start of the simulator with the grid
+  sim direct {sim}  Start the simulator instance without screen session
+  sim start {sim}   Start the simulator instance {sim}
+  sim stop {sim}    Stop the simulator instance {sim}
+  sim restart {sim} Stop, then start {sim}
+  sim kill {sim}    Force stopping the simulator instanec {sim}
+  sim console {sim} Enter the OpenSim console in screen for instance {sim}
+
+EOT
+  exit 1
+esac
