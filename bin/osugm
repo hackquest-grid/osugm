@@ -110,12 +110,63 @@ disabled)
   echo ${disabled[@]}
   ;;
 start)
+  # start Robust if needed
+  robust_cmd status &>/dev/null
+  grid_stopped=$?
+  if (($grid_stopped)); then
+    robust_cmd start || exit $?
+  fi
+  # give 2 seconds to initialize
+  sleep 2
+
+  # start each enabled instance of OpenSim
+  for sim in $(grid_enabled); do
+    sim_cmd status $sim &>/dev/null
+    sim_stopped=$?
+    if (($sim_stopped)); then
+      sim_cmd start $sim || log error "$sim could not be started"
+    fi
+  done
   ;;
 stop)
+  # stop each enabled instance of OpenSim
+  for sim in $(grid_enabled); do
+    sim_cmd status $sim &>/dev/null
+    sim_stopped=$?
+    if ! (($si_stopped)); then
+      sim_cmd stop $sim || log warn "$sim could not be stopped"
+    fi
+  done
+
+  # wait 2 seconds so that Robust processes last requests
+  sleep 2
+
+  # stop Robust if still running
+  robust_cmd status &>/dev/null
+  grid_stopped=$?
+  if ! (($grid_stopped)); then
+    robust_cmd stop || error "Robust could not be stopped"
+  fi
   ;;
 restart)
+  robust_cmd stop && robust_cmd start
   ;;
 kill)
+  # kill each enabled instance of OpenSim
+  for sim in $(grid_enabled); do
+    sim_cmd status $sim &>/dev/null
+    sim_stopped=$?
+    if ! (($sim_stopped)); then
+      sim_cmd kill $sim || log error "$sim could not be killed"
+    fi
+  done
+
+  # kill Robust
+  robust_cmd status &>/dev/null
+  grid_stopped=$?
+  if ! (($grid_stopped)); then
+    robust_cmd kill || error "Robust could not be killed"
+  fi
   ;;
 robust)
   shift

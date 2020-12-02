@@ -27,6 +27,7 @@ robust_cmd () {
     robust_status
     ;;
   direct|start)
+    mkdir -p "$OSUGM_GRIDRUN" || exit $?
     if robust_exists; then
       log warn "$msgrob is already running. Use '$OSUGM robust console' to view it"
       return 0
@@ -44,7 +45,7 @@ robust_cmd () {
     fi
 
     cmd="env LANG=C $OSUGM_MONO Robust.exe \
-        -initfile=\"$OSUGM_LIB/conf/Robust.ini\" \
+        -inifile=\"$OSUGM_LIB/conf/Robust.ini\" \
         -logconfig=\"$logconfig\""
     if [[ $1 = 'direct' ]]; then
       direct_start $msgrob "$OSUGM_EXEC/$OSUGM_OPENSIM/bin" $cmd
@@ -70,7 +71,7 @@ robust_cmd () {
     kill_pidfile $msgrob "$"
     ;;
   console)
-    sreen_attach $msgrob
+    screen_attach $msgrob
     ;;
   *)
     $OSUGM help
