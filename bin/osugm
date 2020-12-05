@@ -2,7 +2,9 @@
 
 export OSUGM_ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 export OSUGM=$(basename $0)
-[ -f "$OSUGM_ROOT/etc/$OSUGM/.std" ] && export OSUGM_PREFIX="$OSUGM_ROOT"
+if [ -f "$OSUGM_ROOT/etc/$OSUGM/.std" ] || [ -f "/etc/$OSUGM/.std" ]; then
+  export OSUGM_PREFIX="$OSUGM_ROOT"
+fi
 if [ "$OSUGM_PREFIX" ]; then
   # use OSUGM_PREFIX to use a standard Unix scheme
   export OSUGM_ROOT="$OSUGM_PREFIX"
