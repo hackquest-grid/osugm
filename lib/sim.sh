@@ -18,10 +18,10 @@ sim_exists () {
 
 sim_status () {
   if sim_exists; then
-    echo "$msgsim running"
+    echo "OpenSim $msgsim running"
     return 0
   fi
-  echo "$msgsim offline"
+  echo "OpenSim $msgsim offline"
   return 10
 }
 

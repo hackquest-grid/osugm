@@ -125,7 +125,7 @@ install)
 status)
   robust_status
   for sim in $(grid_enabled); do
-    sim_status $sim
+    sim_cmd status $sim
   done
   ;;
 available)
