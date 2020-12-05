@@ -6,12 +6,22 @@ export OSUGM=$(basename $0)
 if [ "$OSUGM_PREFIX" ]; then
   # use OSUGM_PREFIX to use a standard Unix scheme
   export OSUGM_ROOT="$OSUGM_PREFIX"
-  [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_PREFIX/etc/$OSUGM"
   [ "$OSUGM_BIN" ] || export OSUGM_BIN="$OSUGM_PREFIX/bin"
   [ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_PREFIX/lib/$OSUGM"
-  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_PREFIX/var/lib/$OSUGM"
-  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$OSUGM_PREFIX/var/run/$OSUGM"
-  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$OSUGM_PREFIX/var/log/$OSUGM"
+   etcdir="/etc/$OSUGM"
+   exedir="/var/lib/$OSUGM"
+   logdir="/var/log/$OSUGM"
+   rundir="/var/run/$OSUGM"
+  if [[ $OSUGM_PREFIX != '/usr' ]]; then
+    etcdir="$OSUGM_PREFIX$etcdir"
+    exedir="$OSUGM_PREFIX$exedir"
+    logdir="$OSUGM_PREFIX$logdir"
+    rundir="$OSUGM_PREFIX$rundir"
+  fi
+  [ "$OSUGM_CONF" ] || export OSUGM_CONF="$etcdir"
+  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$exedir"
+  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$logdir"
+  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$rundir"
 else
   # or keep project structure in one directory
   [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_ROOT/conf"
@@ -74,18 +84,32 @@ install)
   else
     BASENAME=osugm
   fi
-  install -d "$INSTDIR/etc/$BASENAME/available" || exit 1
-  install -d "$INSTDIR/etc/$BASENAME/enabled" || exit 1
-  install -d "$INSTDIR/lib/$BASENAME/templates" || exit 1
-  install -d "$INSTDIR/lib/$BASENAME/conf" || exit 1
-  install -d "$INSTDIR/var/run/$BASENAME" || exit 1
-  install -d "$INSTDIR/var/log/$BASENAME" || exit 1
-  install -m 755 "$OSUGM_BIN/$OSUGM" "$INSTDIR/bin/$BASENAME" || exit 1
-  install -m 644 "$OSUGM_LIB/"*.sh "$INSTDIR/lib/$BASENAME" || exit 1
-  install -m 644 "$OSUGM_LIB/conf/"* "$INSTDIR/lib/$BASENAME/conf" || exit 1
-  install -m 644 "$OSUGM_LIB/templates/"* "$INSTDIR/lib/$BASENAME/templates" || exit 1
-  touch "$INSTDIR/etc/$BASENAME/.std" || exit 1
-  log info "Done, do not forget to initialize your installation before executing\n\t$(bold $INSTDIR/bin/$OSUGM)"
+  bindir="$INSTDIR/bin"
+  etcdir="$INSTDIR/etc/$BASENAME"
+  libdir="$INSTDIR/lib/$BASENAME"
+  exedir="$INSTDIR/var/lib/$BASENAME"
+  logdir="$INSTDIR/var/log/$BASENAME"
+  rundir="$INSTDIR/var/run/$BASENAME"
+  # special handling for /usr
+  if [[ $INSTDIR = '/usr' ]]; then
+    etcdir="/etc/$BASENAME"
+    exedir="/var/lib/$BASENAME"
+    logdir="/var/log/$BASENAME"
+    rundir="/var/run/$BASENAME"
+  fi
+  install -d "$etcdir/available" || exit 1
+  install -d "$etcdir/enabled" || exit 1
+  install -d "$libdir/conf" || exit 1
+  install -d "$libdir/templates" || exit 1
+  install -d "$exedir" || exit 1
+  install -d "$logdir" || exit 1
+  install -d "$rundir" || exit 1
+  install -m 755 "$OSUGM_BIN/$OSUGM" "$bindir/$BASENAME" || exit 1
+  install -m 644 "$OSUGM_LIB/"*.sh "$libdir" || exit 1
+  install -m 644 "$OSUGM_LIB/conf/"* "$libdir/conf" || exit 1
+  install -m 644 "$OSUGM_LIB/templates/"* "$libdir/templates" || exit 1
+  touch "$etcdir/.std" || exit 1
+  log info "Done, do not forget to initialize your installation before executing\n\t$(bold $bindir/$OSUGM)"
   ;;
 status)
   robust_status
