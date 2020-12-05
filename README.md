@@ -266,6 +266,12 @@ Other directories are generated during the setup. By default, **OSUGM** is confi
 * `OSUGM_EXEC` where Opensim releases are put, defaults to `opensim`
 * `OSUGM_RUN` runtime directory (your grid/opensim user files), defaults to `run`
 
+If you follow **OSUGM** updates, you can easily update copies.
+Let's say you have a copy in `/opt/mygrid`, you can copy the update with a simple
+```sh
+$ bin/osugm copy /opt/mygrid
+```
+
 ### Using the Unix directory layout
 
 Let's say you want to install **OSUGM** the standard way, in `/usr/local`:

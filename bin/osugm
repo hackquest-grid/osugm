@@ -75,6 +75,15 @@ init)
   cp "$OSUGM_LIB/templates/Database.ini" "$OSUGM_CONF" || exit 1
   log info "Done. Don't forget to edit your new configuration in:\n\t$(bold $OSUGM_CONF/osugm.conf)\n\t$(bold $OSUGM_CONF/Database.ini)\n\t$(bold $OSUGM_CON/Robust.ini)"
   ;;
+copy)
+  [ "$2" ] || error "Specify a copy path"
+  log info "Copying OSUGM to \"$2\""
+  mkdir -p "$2/bin" || exit 1
+  mkdir -p "$2/lib" || exit 1
+  cp "$OSUGM_BIN/$OSUGM" "$2/bin" || exit 1
+  cp -r "$OSUGM_LIB/"* "$2/lib" || exit 1
+  log info "Done."
+  ;;
 install)
   [ "$2" ] || error "Specify an install path"
   # let's create an OSUGM installation with standard Unix scheme
@@ -201,7 +210,8 @@ $OSUGM {command} - Controls the OpenSim grid
 Where {command} is one of:
   root      Give the root folder
   init      Create a default configuration from templates
-  install {prefix} [{name}] Install under {prefix} with opt. {name}
+  copy {dir} Copy bin and lib to destination directory
+  install {prefix} [{name}] Unix install under {prefix} with opt. {name}
   status    Get grid running status
   available List available simulators (and show enabled)
   enabled   List only enabled simulators
