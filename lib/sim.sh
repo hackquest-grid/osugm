@@ -52,13 +52,13 @@ sim_cmd () {
     ;;
   enable)
     [[ -r $OSUGM_CONF/available/$OSUGM_SIMNAME ]] || error "'$OSUGM_SIMNAME' instance does not exists"
-    [[ -h $OSUGM_CONF/enable/$OSUGM_SIMNAME ]] && error "'$OSUGM_SIMNAME' is already enabled"
-    cd "$OSUGM_CONF/enable" && ln -s "$OSUGM_CONF/available/$OSUGM_SIMNAME" || exit $?
+    [[ -h $OSUGM_CONF/enabled/$OSUGM_SIMNAME ]] && error "'$OSUGM_SIMNAME' is already enabled"
+    cd "$OSUGM_CONF/enabled" && ln -s "$OSUGM_CONF/available/$OSUGM_SIMNAME" || exit $?
     log info "$(bold $OSUGM_SIMNAME) instance enabled for running with grid"
     ;;
   disable)
-    [[ -h $OSUGM_CONF/enable/$OSUGM_SIMNAME ]] || error "'$OSUGM_SIMNAME' is not an enabled instance"
-    rm -f "$OSUGM_CONF/enable/$OSUGM_SIMNAME" || exit $?
+    [[ -h $OSUGM_CONF/enabled/$OSUGM_SIMNAME ]] || error "'$OSUGM_SIMNAME' is not an enabled instance"
+    rm -f "$OSUGM_CONF/enabled/$OSUGM_SIMNAME" || exit $?
     log info "$(bold $OSUGM_SIMNAME) disabled from running with grid"
     ;;
   direct|start)

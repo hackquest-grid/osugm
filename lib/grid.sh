@@ -8,6 +8,16 @@ grid_available () {
 }
 
 grid_enabled () {
-  ls "$OSUGM_CONF/enable/"
+  ls "$OSUGM_CONF/enabled/"
 }
 
+grid_disabled () {
+  all=$(grid_available)
+  declare -a disabled
+  for sim in $all; do
+    if ! [ -h "$OSUGM_CONF/enabled/$sim" ]; then
+      disabled[${#disabled[@]}]=$sim
+    fi
+  done
+  echo ${disabled[@]}
+}

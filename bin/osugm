@@ -55,7 +55,7 @@ root)
 init)
   log info "Creating files and directories..."
   mkdir -p "$OSUGM_CONF/available" || exit 1
-  mkdir -p "$OSUGM_CONF/enable" || exit 1
+  mkdir -p "$OSUGM_CONF/enabled" || exit 1
   mkdir -p "$OSUGM_EXEC" || exit 1
   mkdir -p "$OSUGM_RUN" || exit 1
   cp "$OSUGM_LIB/templates/osugm.conf" "$OSUGM_CONF" || exit 1
@@ -75,7 +75,7 @@ install)
     BASENAME=osugm
   fi
   install -d "$INSTDIR/etc/$BASENAME/available" || exit 1
-  install -d "$INSTDIR/etc/$BASENAME/enable" || exit 1
+  install -d "$INSTDIR/etc/$BASENAME/enabled" || exit 1
   install -d "$INSTDIR/lib/$BASENAME/templates" || exit 1
   install -d "$INSTDIR/lib/$BASENAME/conf" || exit 1
   install -d "$INSTDIR/var/run/$BASENAME" || exit 1
@@ -100,14 +100,7 @@ enabled)
   grid_enabled
   ;;
 disabled)
-  all=$(grid_available)
-  declare -a disabled
-  for sim in $all; do
-    if ! [ -h "$OSUGM_CONF/enable/$sim" ]; then
-      disabled[${#disabled[@]}]=$sim
-    fi
-  done
-  echo ${disabled[@]}
+  grid_disabled
   ;;
 start)
   # start Robust if needed
