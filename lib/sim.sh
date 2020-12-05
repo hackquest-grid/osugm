@@ -86,7 +86,7 @@ sim_cmd () {
   stop)
     if ! sim_exists; then
       log warn "$msgsim is not running"
-      exit 0
+      return 0
     fi
     if screen_exists "$msgsim"; then
       screen_stop $msgsim sim_exists 60 "$OSUGM_SIMRUN/OpenSim.exe.pid"
