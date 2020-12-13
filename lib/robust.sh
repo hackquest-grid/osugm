@@ -6,7 +6,7 @@
 msgrob='Robust'
 
 robust_exists () {
-  ps -ef | grep ' Robust.exe' | grep -qv grep
+  ps -ef -U $USER -u $USER | grep ' Robust.exe' | grep -qv grep
 }
 
 robust_status () {

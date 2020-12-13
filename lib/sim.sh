@@ -13,7 +13,7 @@ sim_init () {
 }
 
 sim_exists () {
-  ps -ef | grep "$OSUGM_MONO OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep
+  ps -ef -U $USER -u $USER | grep "$OSUGM_MONO OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep
 }
 
 sim_status () {
