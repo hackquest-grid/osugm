@@ -51,6 +51,45 @@ source_or_die \
 
 case "$1" in
 ""|root|init|install);;
+help|-h|--help)
+  cat <<EOT
+$OSUGM {command} - Controls the OpenSim grid
+Where {command} is one of:
+  root      Give the root folder
+  init      Create a default configuration from templates
+  copy {dir} Copy bin and lib to destination directory
+  install {prefix} [{name}] Unix install under {prefix} with opt. {name}
+  status    Get grid running status
+  available List available simulators (and show enabled)
+  enabled   List only enabled simulators
+  disabled  List only disabled simulators
+  start     Start the grid, aka Robust and all enabled simulators
+  stop      Stop the gri, aka all enabled simulator and Robust
+  restart   Stop, then start
+  kill      Force stopping Robust and all enabled simulators
+Robust specific commands:
+  robust status     Get running status of Robust
+  robust direct     Start Robust without screen session
+  robust start      Start Robust
+  robust stop       Stop Robust
+  robust restart    Stop, then start
+  robust kill       Force stopping Robust when it does not respond
+  robust console    Enter the Robust console into the screen session
+Simulator specific commands:
+  sim init {sim}    Create a default configuration from template
+  sim status {sim}  Get running status of the simulator
+  sim enable {sim}  Enable auto start of the simulator with the grid
+  sim disable {sim} Disable auto start of the simulator with the grid
+  sim direct {sim}  Start the simulator instance without screen session
+  sim start {sim}   Start the simulator instance {sim}
+  sim stop {sim}    Stop the simulator instance {sim}
+  sim restart {sim} Stop, then start {sim}
+  sim kill {sim}    Force stopping the simulator instanec {sim}
+  sim console {sim} Enter the OpenSim console in screen for instance {sim}
+
+EOT
+  exit 1
+  ;;
 *)
   # load configuration
   mainconf="$OSUGM_CONF/osugm.conf"
@@ -205,41 +244,6 @@ sim)
   sim_cmd "$@"
   ;;
 *)
-  cat <<EOT
-$OSUGM {command} - Controls the OpenSim grid
-Where {command} is one of:
-  root      Give the root folder
-  init      Create a default configuration from templates
-  copy {dir} Copy bin and lib to destination directory
-  install {prefix} [{name}] Unix install under {prefix} with opt. {name}
-  status    Get grid running status
-  available List available simulators (and show enabled)
-  enabled   List only enabled simulators
-  disabled  List only disabled simulators
-  start     Start the grid, aka Robust and all enabled simulators
-  stop      Stop the gri, aka all enabled simulator and Robust
-  restart   Stop, then start
-  kill      Force stopping Robust and all enabled simulators
-Robust specific commands:
-  robust status     Get running status of Robust
-  robust direct     Start Robust without screen session
-  robust start      Start Robust
-  robust stop       Stop Robust
-  robust restart    Stop, then start
-  robust kill       Force stopping Robust when it does not respond
-  robust console    Enter the Robust console into the screen session
-Simulator specific commands:
-  sim init {sim}    Create a default configuration from template
-  sim status {sim}  Get running status of the simulator
-  sim enable {sim}  Enable auto start of the simulator with the grid
-  sim disable {sim} Disable auto start of the simulator with the grid
-  sim direct {sim}  Start the simulator instance without screen session
-  sim start {sim}   Start the simulator instance {sim}
-  sim stop {sim}    Stop the simulator instance {sim}
-  sim restart {sim} Stop, then start {sim}
-  sim kill {sim}    Force stopping the simulator instanec {sim}
-  sim console {sim} Enter the OpenSim console in screen for instance {sim}
-
-EOT
-  exit 1
+  $0 help
+  ;;
 esac
