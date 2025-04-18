@@ -13,25 +13,25 @@ if [ "$OSUGM_PREFIX" ]; then
    etcdir="/etc/$OSUGM"
    exedir="/var/lib/$OSUGM"
    logdir="/var/log/$OSUGM"
-   rundir="/var/run/$OSUGM"
+   datadir="/var/run/$OSUGM"
   if [[ $OSUGM_PREFIX != '/usr' ]]; then
     etcdir="$OSUGM_PREFIX$etcdir"
     exedir="$OSUGM_PREFIX$exedir"
     logdir="$OSUGM_PREFIX$logdir"
-    rundir="$OSUGM_PREFIX$rundir"
+    datadir="$OSUGM_PREFIX$datadir"
   fi
   [ "$OSUGM_CONF" ] || export OSUGM_CONF="$etcdir"
   [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$exedir"
   [ "$OSUGM_LOG" ] || export OSUGM_LOG="$logdir"
-  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$rundir"
+  [ "$OSUGM_DATA" ] || export OSUGM_DATA="$datadir"
 else
   # or keep project structure in one directory
   [ "$OSUGM_CONF" ] || export OSUGM_CONF="$OSUGM_ROOT/conf"
   [ "$OSUGM_BIN" ] || export OSUGM_BIN="$OSUGM_ROOT/bin"
   [ "$OSUGM_LIB" ] || export OSUGM_LIB="$OSUGM_ROOT/lib"
-  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_ROOT/opensim"
-  [ "$OSUGM_RUN" ] || export OSUGM_RUN="$OSUGM_ROOT/run"
-  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$OSUGM_RUN"
+  [ "$OSUGM_EXEC" ] || export OSUGM_EXEC="$OSUGM_ROOT/runners"
+  [ "$OSUGM_DATA" ] || export OSUGM_DATA="$OSUGM_ROOT/data"
+  [ "$OSUGM_LOG" ] || export OSUGM_LOG="$OSUGM_DATA"
 fi
 export OSUGM_PID=$$
 
@@ -108,7 +108,7 @@ init)
   mkdir -p "$OSUGM_CONF/available" || exit 1
   mkdir -p "$OSUGM_CONF/enabled" || exit 1
   mkdir -p "$OSUGM_EXEC" || exit 1
-  mkdir -p "$OSUGM_RUN" || exit 1
+  mkdir -p "$OSUGM_DATA" || exit 1
   cp "$OSUGM_LIB/templates/osugm.conf" "$OSUGM_CONF" || exit 1
   cp "$OSUGM_LIB/templates/Robust.ini" "$OSUGM_CONF" || exit 1
   cp "$OSUGM_LIB/templates/Database.ini" "$OSUGM_CONF" || exit 1
@@ -139,13 +139,13 @@ install)
   libdir="$INSTDIR/lib/$BASENAME"
   exedir="$INSTDIR/var/lib/$BASENAME"
   logdir="$INSTDIR/var/log/$BASENAME"
-  rundir="$INSTDIR/var/run/$BASENAME"
+  datadir="$INSTDIR/var/run/$BASENAME"
   # special handling for /usr
   if [[ $INSTDIR = '/usr' ]]; then
     etcdir="/etc/$BASENAME"
     exedir="/var/lib/$BASENAME"
     logdir="/var/log/$BASENAME"
-    rundir="/var/run/$BASENAME"
+    datadir="/var/run/$BASENAME"
   fi
   install -d "$etcdir/available" || exit 1
   install -d "$etcdir/enabled" || exit 1
@@ -153,7 +153,7 @@ install)
   install -d "$libdir/templates" || exit 1
   install -d "$exedir" || exit 1
   install -d "$logdir" || exit 1
-  install -d "$rundir" || exit 1
+  install -d "$datadir" || exit 1
   install -m 755 "$OSUGM_BIN/$OSUGM" "$bindir/$BASENAME" || exit 1
   install -m 644 "$OSUGM_LIB/"*.sh "$libdir" || exit 1
   install -m 644 "$OSUGM_LIB/conf/"* "$libdir/conf" || exit 1

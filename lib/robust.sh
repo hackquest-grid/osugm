@@ -20,14 +20,14 @@ robust_status () {
 
 robust_cmd () {
   source_or_die "$OSUGM_LIB/run.sh"
-  export OSUGM_GRIDRUN="$OSUGM_RUN/grid"
+  export OSUGM_GRIDDATA="$OSUGM_DATA/grid"
 
   case "$1" in
   status)
     robust_status
     ;;
   direct|start)
-    mkdir -p "$OSUGM_GRIDRUN" || exit $?
+    mkdir -p "$OSUGM_GRIDDATA" || exit $?
     if robust_exists; then
       log warn "$msgrob is already running. Use '$OSUGM robust console' to view it"
       return 0
@@ -59,7 +59,7 @@ robust_cmd () {
       exit 0
     fi
     if screen_exists $msgrob; then
-      screen_stop $msgrob robust_exists 120 "$OSUGM_GRIDRUN/Robust.exe.pid"
+      screen_stop $msgrob robust_exists 120 "$OSUGM_GRIDDATA/Robust.exe.pid"
     else
       log warn "$msgrob started manually, stop it from the console"
     fi

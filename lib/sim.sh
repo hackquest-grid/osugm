@@ -13,7 +13,7 @@ sim_init () {
 }
 
 sim_exists () {
-  ps -ef -U $USER -u $USER | grep "$OSUGM_MONO OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep
+  ps -ef -U $USER -u $USER | grep "$OSUGM_DOTNET OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep
 }
 
 sim_status () {
@@ -33,7 +33,7 @@ sim_cmd () {
   fi
   export OSUGM_SIMNAME="$2"
   export OSUGM_SIMCONF="$OSUGM_CONF/available/$OSUGM_SIMNAME"
-  export OSUGM_SIMRUN="$OSUGM_RUN/opensim.$OSUGM_SIMNAME"
+  export OSUGM_SIMDATA="$OSUGM_DATA/opensim.$OSUGM_SIMNAME"
   msgsim="$OSUGM_SIMNAME"
   set_logfile "$OSUGM.$OSUGM_SIMNAME.log"
 
@@ -73,7 +73,7 @@ sim_cmd () {
       logconfig="$OSUGM_SIMCONF/OpenSim.exe.config"
     fi
 
-    cmd="env LANG=C $OSUGM_MONO OpenSim.exe \
+    cmd="env LANG=C $OSUGM_DOTNET OpenSim.exe \
       -inifile=\"$OSUGM_LIB/conf/OpenSim.ini\" \
       -inidirectory=\"$OSUGM_SIMCONF\" \
       -logconfig=\"$logconfig\""
@@ -89,7 +89,7 @@ sim_cmd () {
       return 0
     fi
     if screen_exists "$msgsim"; then
-      screen_stop $msgsim sim_exists 60 "$OSUGM_SIMRUN/OpenSim.exe.pid"
+      screen_stop $msgsim sim_exists 60 "$OSUGM_SIMDATA/OpenSim.exe.pid"
     else
       log warn "$msgsim started manually, stop it from the console"
     fi
@@ -98,7 +98,7 @@ sim_cmd () {
     $0 stop && $0 start
     ;;
   kill)
-    kill_pidfile $msgsim "$OSUGM_SIMRUN/OpenSim.exe.pid"
+    kill_pidfile $msgsim "$OSUGM_SIMDATA/OpenSim.exe.pid"
     ;;
   console)
     screen_attach "$OSUGM_SIMNAME"

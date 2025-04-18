@@ -18,8 +18,8 @@ You also need only one **OpenSim** distribution for **Robust** and all instances
 * `bin`: contains the unique `osugm` script, entry point for all commands
 * `conf`: your local grid configuration
 * `lib`: **OSUGM** helper scripts, configuration and templates
-* `opensim`: downloaded distributions of **OpenSim**
-* `run`: where content files will be placed by **OpenSim** and **Robust**, as well as log files
+* `runners`: downloaded distributions of **OpenSim**
+* `data`: where content files will be placed by **OpenSim** and **Robust**, as well as log files
 
 ### Unix layout
 
@@ -74,13 +74,12 @@ It's a shell script that will be sourced by **OSUGM**, and contains global setti
 * **OSUGM_PRIVATEPORT**: the port for internal communication between **Robust** and simulators (historically, it's `8003`)
 
 Then you have global defaults, that can be overriden by simulator instances:
-* **OSUGM_MONO**: path to the **Mono** binary to use (defaults to the first `mono` executable found in the `PATH`)
-* **MONO_THREADS_PER_CPU** and **MONO_GC_PARAMS**: reasonable defaults for **Mono** environment variables to run **OpenSim**, you can of course define others if needed
-* **OSUGM_OPENSIM**: path to the default **OpenSim** distribution, used by **Robust** and all simulator instances, in dedicated directory setup, this path is relative to the `opensim` directory, in Unix setup, it is relative to `/var/lib/{osugm}`
+* **OSUGM_DOTNET**: path to the **dotnet** binary to use (defaults to the first `dotnet` executable found in the `PATH`)
+* **OSUGM_OPENSIM**: path to the default **OpenSim** distribution, used by **Robust** and all simulator instances, in dedicated directory setup, this path is relative to the `runners` directory, in Unix setup, it is relative to `/var/lib/{osugm}`
 
-* ***shell commands***: by default a `ulimit` command is played to remove core file size restriction
+* ***shell commands***: any shell command that can modify the environment can be added
 
-> Considering network access, **OSUGM** does not provide any facility to configure your computer or router for incoming requests. You will surely have to configure your router to open ports and play with `iptables` to enable NAT forwarding.
+> Considering network access, **OSUGM** does not provide any facility to configure your computer or router for incoming requests. You will surely have to configure your router to open ports and play with `iptables` or `nft` to enable NAT forwarding.
 
 ### Database.ini
 
@@ -116,7 +115,7 @@ If you need to start **Robust** directly (without using **screen**), you can exe
 $ bin/osugm robust direct
 ```
 
-All files gerenated by **Robust** are stored in the `run/grid` directory (`/var/run/{osugm}/grid` for Unix install). That means anything you are used to see in the `bin` directory of **OpenSim** is put there for **Robust**.
+All files gerenated by **Robust** are stored in the `data/grid` directory (`/var/run/{osugm}/grid` for Unix install). That means anything you are used to see in the `bin` directory of **OpenSim** is put there for **Robust**.
 
 
 
@@ -242,11 +241,11 @@ For **OpenSim**:
 * `lib/conf/OpenSim.ini` main configuration file for all instances, includes your `conf/OpenSim.ini` and uses `conf/available/{inst}` directory as modular configuration (parsing all `.ini` in it)
 * `lib/conf/OpenSim.exe.config` used if `conf/available/{inst}/OpenSim.exe.config` does not exist
 
-### Runtime directory
+### Datas directory
 
-The `run` directory contains all *variable* files and directories. It's organized per instance:
-* `run/grid` contains **Robust** runtime files
-* `run/opensim.{instance}` (with *{instance}* the instane name) contains all **OpenSim** runtime files for one instance
+The `data` directory contains all *variable* files and directories. It's organized per instance:
+* `data/grid` contains **Robust** runtime files
+* `data/opensim.{instance}` (with *{instance}* the instane name) contains all **OpenSim** runtime files for one instance
 
 
 
@@ -262,9 +261,9 @@ Other directories are generated during the setup. By default, **OSUGM** is confi
 * `OSUGM_BIN` **OSUGM** command, defaults to `bin`
 * `OSUGM_CONF` where your configuration is, defaults to `conf`
 * `OSUGM_LIB` a different directory for **OSUGM** support files, defaults to `lib`
-* `OSUGM_LOG` where log files are put, defaults to `run`
+* `OSUGM_LOG` where log files are put, defaults to `data`
 * `OSUGM_EXEC` where Opensim releases are put, defaults to `opensim`
-* `OSUGM_RUN` runtime directory (your grid/opensim user files), defaults to `run`
+* `OSUGM_DATA` data directory (your grid/opensim user files), defaults to `data`
 
 If you follow **OSUGM** updates, you can easily update copies.
 Let's say you have a copy in `/opt/mygrid`, you can copy the update with a simple
@@ -286,7 +285,7 @@ That will create on your system:
 * `/usr/local/lib/osugm/` (overrides **OSUGM_LIB**)
 * `/usr/local/var/lib/osugm/` (overrides **OSUGM_EXEC**)
 * `/usr/local/var/log/osugm/` (overrides **OSUGM_LOG**)
-* `/usr/local/var/run/osugm/` (overrides **OSUGM_RUN**)
+* `/usr/local/var/run/osugm/` (overrides **OSUGM_DATA**)
 
 If prefix is `/usr`, installation is a bit different, considering it's a global system install:
 * `/usr/bin/osugm` script
@@ -295,7 +294,7 @@ If prefix is `/usr`, installation is a bit different, considering it's a global 
 * `/usr/lib/osugm/` for **OSUGM_LIB**
 * `/var/lib/osugm/` for **OSUGM_EXEC**
 * `/var/log/osugm/` for **OSUGM_LOG**
-* `/var/run/osugm/` for **OSUGM_RUN**
+* `/var/run/osugm/` for **OSUGM_DATA**
 
 If you want to host several instances of **OSUGM** on the same system, you can also specify an alternate *name* that will be used as a suffix. Let's install in `/usr` with the name `mygrid`:
 ```sh
@@ -308,4 +307,4 @@ This will create:
 * `/usr/lib/osugm.mygrid/` (**OSUGM_LIB**)
 * `/var/lib/osugm.mygrid/` (**OSUGM_EXEC**)
 * `/var/log/osugm.mygrid/` (**OSUGM_LOG**)
-* `/var/run/osugm.mygrid/` (**OSUGM_RUN**)
+* `/var/run/osugm.mygrid/` (**OSUGM_DATA**)

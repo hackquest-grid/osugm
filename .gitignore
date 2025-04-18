@@ -1,4 +1,4 @@
 conf/*
-opensim/*
-!opensim/.keepme
-run/*
+runners/*
+!runners/.keepme
+data/*
