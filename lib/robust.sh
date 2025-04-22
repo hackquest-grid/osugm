@@ -6,7 +6,7 @@
 msgrob='Robust'
 
 robust_exists () {
-  ps -ef -U $USER -u $USER | grep ' Robust.exe' | grep -qv grep
+  ps -ef -U $USER -u $USER | grep ' Robust.dll' | grep -qv grep
 }
 
 robust_status () {
@@ -44,7 +44,7 @@ robust_cmd () {
       logconfig="$OSUGM_CONF/Robust.exe.config"
     fi
 
-    cmd="env LANG=C $OSUGM_MONO Robust.exe \
+    cmd="env LANG=C $OSUGM_DOTNET Robust.dll \
         -inifile=\"$OSUGM_LIB/conf/Robust.ini\" \
         -logconfig=\"$logconfig\""
     if [[ $1 = 'direct' ]]; then

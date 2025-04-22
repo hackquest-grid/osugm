@@ -13,7 +13,7 @@ sim_init () {
 }
 
 sim_exists () {
-  ps -ef -U $USER -u $USER | grep "$OSUGM_DOTNET OpenSim.exe" | grep "$OSUGM_SIMCONF" | grep -qv grep
+  ps -ef -U $USER -u $USER | grep "$OSUGM_DOTNET OpenSim.dll" | grep "$OSUGM_SIMCONF" | grep -qv grep
 }
 
 sim_status () {
@@ -62,6 +62,7 @@ sim_cmd () {
     log info "$(bold $OSUGM_SIMNAME) disabled from running with grid"
     ;;
   direct|start)
+    mkdir -p "$OSUGM_SIMDATA" || exit $?
     if sim_exists; then
       log warn "$msgsim is already running. Use '$OSUGM sim console $OSUGM_SIMNAME' to view it"
       return 0
@@ -73,7 +74,7 @@ sim_cmd () {
       logconfig="$OSUGM_SIMCONF/OpenSim.exe.config"
     fi
 
-    cmd="env LANG=C $OSUGM_DOTNET OpenSim.exe \
+    cmd="env LANG=C $OSUGM_DOTNET OpenSim.dll \
       -inifile=\"$OSUGM_LIB/conf/OpenSim.ini\" \
       -inidirectory=\"$OSUGM_SIMCONF\" \
       -logconfig=\"$logconfig\""
